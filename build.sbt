@@ -9,7 +9,7 @@ val spinalIdslPlugin = compilerPlugin("com.github.spinalhdl" %% "spinalhdl-idsl-
 
 lazy val projectname = (project in file("."))
   .settings(
-    Compile / scalaSource := baseDirectory.value / "hw" / "spinal",
+    Compile / scalaSource := baseDirectory.value / "svm" ,
     libraryDependencies ++= Seq(spinalCore, spinalLib, spinalIdslPlugin)
   )
 
