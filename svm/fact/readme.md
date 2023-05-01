@@ -21,3 +21,19 @@ The I/O interface can be classified as three kinds of protocols in the early sta
 Each protocol has two directions, master and slave, depending on the I/O direction definition. The driver/monitor/sequencer/agent/subscriber has
 also two directions. 
 
+## I/O extraction
+
+The Extractor assumes that the top level design has all its I/O defined in `io` bundle. 
+Inside the `io`, there may be four kinds of `Data`: `Stream`, `Flow`, `BaseType` and other `Bundle`.
+The payload of `Stream` and `Flow` can be either `BaseType` or `Bundle`. These two kinds of bundle has definitive protocol as valid-ready and valid-only.
+The `BaseType` is one single bit vector or just a bool wire. These wires each are treated as sideband signals.
+The `Bundle` contains `Stream`, `Flow` or `BaseType` (normally) further and the Extractor will extract all the sub-bundles inside just like what it does to `io` bundle.
+
+The output from Extractor is a set of `BundleDef`. Each bundle definition will contain following member:
+
+* protocol: Stream/Flow/Sideband
+* payload: a set of Wire
+* name: bundle name
+* dir: Slave/Master
+
+Utilizing the data structure of `BundleDef`, the interface and corresponding UVC can be generated.
