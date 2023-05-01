@@ -10,7 +10,8 @@ val spinalIdslPlugin = compilerPlugin("com.github.spinalhdl" %% "spinalhdl-idsl-
 lazy val SpinalVerficationMethodology = (project in file("."))
   .settings(
     Compile / scalaSource := baseDirectory.value / "svm" ,
-    libraryDependencies ++= Seq(spinalCore, spinalLib, spinalIdslPlugin)
+    libraryDependencies ++= Seq(spinalCore, spinalLib, spinalIdslPlugin),
+    Test / scalaSource := baseDirectory.value / "test"
   )
 
 fork := true
