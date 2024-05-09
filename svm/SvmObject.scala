@@ -3,13 +3,12 @@ package svm
 abstract class SvmObject(val name: String) extends SvmVoid {
   
   // Common methods
-  def setName(): Unit // name cannot be set again
+  // def setName(): Unit // name cannot be set again
   def getName(): String = this.name
   def getFullName(): String 
 
   def getInstID(): Int = this.hashCode()
 
-  // 
 }
 
 object SvmObject {
@@ -20,5 +19,6 @@ object SvmObject {
     seed = sed
   }
 
+  // def getTypeId[T <: ]
   // def getType(): SvmObjectWrapper TODO: 
 }
