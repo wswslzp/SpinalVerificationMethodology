@@ -4,7 +4,7 @@ package svm
 //
 object SvmPhaseManager {
     val phaseBuild = new SvmDownUpPhase("build", false)
-    val phaseRun = new SvmDownUpPhase("run", true)
+    val phaseRun = new SvmUpDownPhase("run", true)
     val phaseCheck = new SvmUpDownPhase("check", false)
     
     val phases = scala.collection.mutable.LinkedHashSet[SvmPhase](

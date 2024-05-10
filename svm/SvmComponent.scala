@@ -20,13 +20,13 @@ class SvmComponent(name: String = "null", parent: SvmComponent = SvmComponent.sv
     
     
     def buildPhase(phase: SvmPhase): Unit = {
-        println(f"${getFullName()} entering ${phase.getPhaseName}")
+        svmLogger.info(f"${getFullName()} entering ${phase.getPhaseName}")
     }
     def runPhase(phase: SvmPhase): Unit = {
-        println(f"${getFullName()} entering ${phase.getPhaseName}")
+        svmLogger.info(f"${getFullName()} entering ${phase.getPhaseName}")
     }
     def checkPhase(phase: SvmPhase): Unit = {
-        println(f"${getFullName()} entering ${phase.getPhaseName}")
+        svmLogger.info(f"${getFullName()} entering ${phase.getPhaseName}")
     }
     
     private def register(): Unit = {

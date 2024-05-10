@@ -27,7 +27,7 @@ class A(name: String) extends SvmComponent(name) {
 object SvmComponentTest extends App {
     val a = new A("A")
     a.printTopology()
-    SvmPhaseManager.phaseRun.skipping = true
+    // SvmPhaseManager.phaseRun.skipping = true
     val svc = SvmPhaseManager.phaseBuild.phaseTasks.map(_._1)
     val tasks = SvmPhaseManager.phaseBuild.phaseTasks.map(_._2)
     // svc.foreach(println(_))
