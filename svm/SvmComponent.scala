@@ -5,7 +5,7 @@ import scala.collection.mutable.ArrayBuffer
 class SvmComponent(name: String = "null", parent: SvmComponent = SvmComponent.svm_root) extends SvmObject(name) { 
     val children = ArrayBuffer.empty[SvmComponent]
 
-    def getFullName(): String = {
+    override def getFullName(): String = {
         if (parent == null) {
             name
         } else {

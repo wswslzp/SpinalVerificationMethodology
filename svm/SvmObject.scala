@@ -5,7 +5,7 @@ abstract class SvmObject(name: String) extends SvmVoid {
   // Common methods
   // def setName(): Unit // name cannot be set again
   def getName(): String = this.name
-  def getFullName(): String 
+  def getFullName(): String = this.name
 
   def getInstID(): Int = this.hashCode()
 
