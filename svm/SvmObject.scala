@@ -1,6 +1,6 @@
 package svm
 
-abstract class SvmObject(val name: String) extends SvmVoid {
+abstract class SvmObject(name: String) extends SvmVoid {
   
   // Common methods
   // def setName(): Unit // name cannot be set again
