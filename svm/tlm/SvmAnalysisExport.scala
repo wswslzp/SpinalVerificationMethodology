@@ -6,6 +6,7 @@ class SvmAnalysisExport[T <: SvmObject](name: String) extends SvmObject(name) {
     var beforeWritingTask : T => Unit = null
     var afterWritingTask : T => Unit = null
     def connect(exp: SvmAnalysisExport[T]) : this.type = {
+        svmHigh(f"${this.getFullName()} connects ${exp.getFullName()}")
         downstreams.addOne(exp)
         this
     }

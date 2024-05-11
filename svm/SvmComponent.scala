@@ -15,23 +15,27 @@ class SvmComponent(name: String = "null", parent: SvmComponent = SvmComponent.sv
     
     def printTopology(): Unit = {
         println(this.getFullName())
-        children.foreach(c => println(c.getFullName()))
+        children.foreach(c => c.printTopology())
     }
     
     
     def buildPhase(phase: SvmPhase): Unit = {
-        svmLogger.info(f"${getFullName()} entering ${phase.getPhaseName}")
+        svmHigh(f"${getFullName()} entering ${phase.getPhaseName}")
+    }
+    def connectPhase(phase: SvmPhase): Unit = {
+        svmHigh(f"${getFullName()} entering ${phase.getPhaseName}")
     }
     def runPhase(phase: SvmPhase): Unit = {
-        svmLogger.info(f"${getFullName()} entering ${phase.getPhaseName}")
+        svmHigh(f"${getFullName()} entering ${phase.getPhaseName}")
     }
     def checkPhase(phase: SvmPhase): Unit = {
-        svmLogger.info(f"${getFullName()} entering ${phase.getPhaseName}")
+        svmHigh(f"${getFullName()} entering ${phase.getPhaseName}")
     }
     
     private def register(): Unit = {
         if (parent != null) parent.children.addOne(this)
         SvmPhaseManager.phaseBuild.addOneTask(this)(buildPhase)
+        SvmPhaseManager.phaseConnect.addOneTask(this)(connectPhase)
         SvmPhaseManager.phaseRun.addOneTask(this)(runPhase)
         SvmPhaseManager.phaseCheck.addOneTask(this)(checkPhase)
     }
