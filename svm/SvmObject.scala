@@ -9,6 +9,7 @@ abstract class SvmObject(name: String) extends SvmVoid {
 
   def getInstID(): Int = this.hashCode()
 
+  def getTypeName(): String = getClass().getTypeName()
 }
 
 object SvmObject {

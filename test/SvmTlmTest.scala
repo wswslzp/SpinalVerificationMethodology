@@ -76,7 +76,6 @@ class Monitor_b(parent: SvmComponent) extends SvmComponent("mon_b", parent) {
 class Subscriber_b(parent: SvmComponent) extends SvmComponent("sub_b", parent) {
     val fifo = new SvmAnalysisFifo[txn]("sub_b.fifo")
     val ap = new SvmAnalysisPort[txn]("sub_b.ap")
-    def dut = SvmRunTest.dut.asInstanceOf[SvmRtlForTest]
     override def runPhase(phase: SvmPhase): Unit = {
         super.runPhase(phase)
         while (true) {
@@ -153,53 +152,6 @@ class A_test() extends SvmComponent("A_test", svm_root) {
 }
 
 object SvmTlmTest extends App {
-    def runrun(dut: SvmRtlForTest) = {
-        var cnt = 0
-        val thrd_4 = fork {
-            println(f"thrd4: start at SYSTIME ${System.nanoTime()}")
-            delayed(300 ns){
-                println(f"thrd4: End at SYSTIME ${System.nanoTime()}")
-            }
-        }
-        val thrd_5 = fork {
-            println(f"thrd5: start at SYSTIME ${System.nanoTime()}")
-            delayed(100 ns){
-                println(f"thrd5: End at SYSTIME ${System.nanoTime()}")
-            }
-        }
-        val thrd_1 = fork {
-            println("thrd1: start")
-            dut.clockDomain.waitSampling(100)
-            println("thrd1: after 100")
-        }
-        val thrd_2 = fork {
-            println("thrd2: start")
-            while (true) {
-                dut.clockDomain.waitSampling()
-                cnt += 1
-                println(f"thrd2: CYCLE $cnt, SYSTIME: ${System.nanoTime()}")
-            }
-        }
-        val thrd_3 = fork {
-            println("thrd3: start")
-            dut.clockDomain.waitSampling(10)
-            println("thrd3: after 10")
-            dut.clockDomain.waitSampling(10)
-            println("thrd3: after 20, kill thrd1")
-            thrd_1.terminate()
-            waitUntil(cnt >= 150)
-            println("thrd3: after 150, kill thrd2")
-            thrd_2.terminate()
-        }
-        thrd_1.join()
-        println("after thrd_1 join")
-        thrd_3.join()
-        println("after thrd_3 join")
-        thrd_2.join()
-        println("after thrd_2 join")
-    }
-    
-
     SimConfig.withIVerilog.withWave.compile(SvmRtlForTest()).doSim({ dut =>
         dut.clockDomain.forkStimulus(10 ns)
         svmLogLevel("medium")
