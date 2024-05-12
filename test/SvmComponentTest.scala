@@ -1,7 +1,7 @@
-import svm.SvmComponent
-import svm.SvmPhase
-import svm.SvmRunTest
-import svm.SvmPhaseManager
+import svm.base.SvmComponent
+import svm.base.SvmPhase
+import svm.base.SvmRunTest
+import svm.base.SvmPhaseManager
 
 class subA(name: String, parent : SvmComponent) extends SvmComponent(name, parent) {
     override def buildPhase(phase: SvmPhase): Unit = {

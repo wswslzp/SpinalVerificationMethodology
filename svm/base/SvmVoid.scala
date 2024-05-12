@@ -1,3 +1,3 @@
-package svm
+package svm.base
 
 abstract class SvmVoid

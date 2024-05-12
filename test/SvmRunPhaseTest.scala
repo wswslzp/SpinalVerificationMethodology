@@ -1,4 +1,4 @@
-import svm._
+import svm.base._
 import spinal.core._
 import spinal.core.sim._
 

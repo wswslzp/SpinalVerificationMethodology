@@ -1,4 +1,5 @@
-package svm
+package svm.base
+import svm._
 import spinal.core._
 import scala.collection.mutable.ArrayBuffer
 

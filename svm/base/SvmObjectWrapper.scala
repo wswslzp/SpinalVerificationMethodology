@@ -1,4 +1,4 @@
-package svm
+package svm.base
 
 class SvmObjectWrapper[T <: SvmObject](obj: T) {
 

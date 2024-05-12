@@ -1,4 +1,4 @@
-package svm
+package svm.base
 import scala.collection.mutable.HashMap
 
 object SvmFactory {

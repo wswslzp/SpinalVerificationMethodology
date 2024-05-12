@@ -1,8 +1,9 @@
 import svm._
+import svm.base._
 import svm.tlm._
 import spinal.core._
 import spinal.core.sim._
-import svm.SvmComponent.svm_root
+import svm.base.SvmComponent.svm_root
 
 case class txn(name: String) extends SvmObject(name) {
     var pd = scala.util.Random.nextInt(1024)

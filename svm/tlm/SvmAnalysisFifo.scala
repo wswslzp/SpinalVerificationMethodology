@@ -1,5 +1,5 @@
 package svm.tlm
-import svm._
+import svm.base._
 import spinal.core.sim._
 
 class SvmAnalysisFifo[T <: SvmObject](name: String) extends SvmObject(name) {

@@ -1,4 +1,4 @@
-package svm
+package svm.base
 
 abstract class SvmObject(name: String) extends SvmVoid {
   

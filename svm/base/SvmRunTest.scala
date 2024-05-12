@@ -1,4 +1,4 @@
-package svm 
+package svm.base
 import spinal.core._
 
 object SvmRunTest {

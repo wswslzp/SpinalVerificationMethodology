@@ -1,5 +1,6 @@
 package svm.tlm
-import svm._
+import svm.base._
+import svm.svmHigh
 
 class SvmAnalysisExport[T <: SvmObject](name: String) extends SvmObject(name) {
     val downstreams = scala.collection.mutable.ArrayBuffer[SvmAnalysisExport[T]]()

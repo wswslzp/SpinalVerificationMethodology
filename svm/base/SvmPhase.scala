@@ -1,13 +1,8 @@
-package svm
+package svm.base
 import spinal.core._
 import spinal.core.sim._
 import spinal.sim.SimThread
-import svm.svmHigh
-import svm.svmHigh
-import svm.svmMedium
-import svm.svmHigh
-import svm.svmWarn
-import svm.svmHigh
+import svm._
 
 class PhaseEndWithNoObjection extends Exception
 abstract class SvmPhase(phaseName: String, timeConsumable: Boolean) {
