@@ -11,6 +11,7 @@ class SvmAnalysisExport[T <: SvmObject] extends SvmObject {
         downstreams.addOne(exp)
         this
     }
+    def >>(exp: SvmAnalysisExport[T]): this.type = {connect(exp)}
     def beforeWrite(task: T => Unit): this.type = {
         beforeWritingTask = task
         this

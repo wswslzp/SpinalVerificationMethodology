@@ -4,13 +4,13 @@ import svm.tlm._
 import svm.comps._
 import spinal.core._
 import spinal.core.sim._
+import svm.seq.SvmSequencer
 
 case class txn() extends SvmObject {
     var pd = scala.util.Random.nextInt(1024)
 }
 
-class Sequencer_a extends SvmComponent {
-    val ap = new SvmAnalysisPort[txn]()
+class Sequencer_a extends SvmSequencer[txn] {
     def dut = SvmRunTest.dut.asInstanceOf[SvmRtlForTest]
     
     override def runPhase(phase: SvmPhase): Unit = {
@@ -36,8 +36,7 @@ class Sequencer_a extends SvmComponent {
     }
 }
 
-class Driver_a extends SvmComponent {
-    val fifo = new SvmAnalysisFifo[txn]()
+class Driver_a extends SvmDriver[txn] {
     def dut = SvmRunTest.dut.asInstanceOf[SvmRtlForTest]
     override def runPhase(phase: SvmPhase): Unit = {
         super.runPhase(phase)
@@ -52,8 +51,7 @@ class Driver_a extends SvmComponent {
     }
 }
 
-class Monitor_b extends SvmComponent {
-    val ap = new SvmAnalysisPort[txn]()
+class Monitor_b extends SvmMonitor[txn] {
     def dut = SvmRunTest.dut.asInstanceOf[SvmRtlForTest]
     override def runPhase(phase: SvmPhase): Unit = {
         super.runPhase(phase)
@@ -74,9 +72,7 @@ class Monitor_b extends SvmComponent {
     }
 }
 
-class Subscriber_b extends SvmComponent {
-    val fifo = new SvmAnalysisFifo[txn]()
-    val ap = new SvmAnalysisPort[txn]()
+class Subscriber_b extends SvmSubscriber[txn] {
     override def runPhase(phase: SvmPhase): Unit = {
         super.runPhase(phase)
         while (true) {
@@ -87,51 +83,33 @@ class Subscriber_b extends SvmComponent {
     }
 }
 
-class Scoreboard() extends SvmComponent() {
-    val act_fifo = new SvmAnalysisFifo[txn]()
-    val exp_fifo = new SvmAnalysisFifo[txn]()
-    override def runPhase(phase: SvmPhase): Unit = {
-        super.runPhase(phase)
-        while (true) {
-            val act_txn = act_fifo.get()
-            val exp_txn = exp_fifo.peek()
-            exp_txn match {
-                case None => svmError(f"Data no match")
-                case Some(value) => 
-                    if (value.pd != act_txn.pd) svmError(f"Data mismatched: actual txn=${act_txn.pd}, expected txn=${value.pd}")
-                    else svmHigh(f"act=${act_txn.pd} matches exp=${value.pd}")
-            }
-        }
-    }
-}
-
-class Agent_a() extends SvmComponent() {
+class Agent_a() extends SvmAgent {
     val drv_a = new Driver_a()
     val sqr_a = new Sequencer_a()
 
     override def connectPhase(phase: SvmPhase): Unit = {
         super.connectPhase(phase)
-        sqr_a.ap.connect(drv_a.fifo.export)
+        sqr_a.ap >> drv_a.fifo.export
     }
 }
 
-class Agent_b() extends SvmComponent() {
+class Agent_b() extends SvmAgent {
     val mon_b = new Monitor_b()
     val sub_b = new Subscriber_b()
     override def connectPhase(phase: SvmPhase): Unit = {
         super.connectPhase(phase)
-        mon_b.ap.connect(sub_b.fifo.export)
+        mon_b.ap >> sub_b.fifo.export
     }
 }
 
-class Environment() extends SvmComponent() {
+class Environment() extends SvmEnv {
     val agent_a = new Agent_a()
     val agent_b = new Agent_b()
-    val scb = new Scoreboard()
+    val scb = new SvmScoreboard[txn]()
     override def connectPhase(phase: SvmPhase): Unit = {
         super.connectPhase(phase)
-        agent_a.sqr_a.ap.connect(scb.exp_fifo.export)
-        agent_b.sub_b.ap.connect(scb.act_fifo.export)
+        agent_a.sqr_a.ap >> scb.expFifo.export
+        agent_b.sub_b.ap >> scb.actFifo.export
     }
 }
 
