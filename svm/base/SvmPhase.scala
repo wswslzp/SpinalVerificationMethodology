@@ -87,7 +87,7 @@ class SvmUpDownPhase(phaseName : String, timeConsumable: Boolean) extends SvmPha
         val task = phaseTasks.getOrElse(key = svc, default = (p: SvmPhase) => {
             svmError(f"Phase ${phaseName} NOT FOUND SVC ${svc.getFullName()}")
         })
-        svmHigh(f"Initiating ${svc.getFullName()} task for ${this.getPhaseName} phase.")
+        svmLow(f"Initiating ${svc.getFullName()} task for ${this.getPhaseName} phase.")
         initiateOneTask(task)
         svc.children.foreach(c => initiateAllTasks(c))
     }
@@ -99,7 +99,7 @@ class SvmDownUpPhase(phaseName : String, timeConsumable: Boolean) extends SvmPha
         val task = phaseTasks.getOrElse(key = svc, default = (p: SvmPhase) => {
             svmError(f"Phase ${phaseName} NOT FOUND SVC ${svc.getFullName()}")
         })
-        svmHigh(f"Initiating ${svc.getFullName()} task for ${this.getPhaseName} phase.")
+        svmLow(f"Initiating ${svc.getFullName()} task for ${this.getPhaseName} phase.")
         svc.children.foreach(c => initiateAllTasks(c))
         initiateOneTask(task)
     }

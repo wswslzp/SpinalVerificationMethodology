@@ -3,7 +3,7 @@ import svm.base.SvmPhase
 import svm.base.SvmRunTest
 import svm.base.SvmPhaseManager
 
-class subA(name: String, parent : SvmComponent) extends SvmComponent(name, parent) {
+class subA extends SvmComponent {
     override def buildPhase(phase: SvmPhase): Unit = {
         super.buildPhase(phase)
         println(s"build sub svc ${getFullName()}")
@@ -18,14 +18,14 @@ class subA(name: String, parent : SvmComponent) extends SvmComponent(name, paren
     }
 }
 
-class A(name: String) extends SvmComponent(name) {
-    val A_a = new subA("a", this)
-    val A_b = new subA("b", this)
-    val A_c = new subA("c", this)
+class A extends SvmComponent {
+    val A_a = new subA
+    val A_b = new subA
+    val A_c = new subA
 }
 // test:compile
 object SvmComponentTest extends App {
-    val a = new A("A")
+    val a = new A()
     a.printTopology()
     // SvmPhaseManager.phaseRun.skipping = true
     val svc = SvmPhaseManager.phaseBuild.phaseTasks.map(_._1)

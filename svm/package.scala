@@ -4,6 +4,8 @@ package object svm {
     import spinal.core._
     import spinal.core.sim._
     
+    type ValCallback = spinal.idslplugin.ValCallback
+    
     def svmLogger = {
         val logger = getLogger("SVM")
         logger

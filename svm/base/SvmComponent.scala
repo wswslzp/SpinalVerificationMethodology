@@ -2,15 +2,19 @@ package svm.base
 import svm._
 import spinal.core._
 import scala.collection.mutable.ArrayBuffer
+import svm.svmError
+import svm.svmFatal
 
-class SvmComponent(name: String = "null", parent: SvmComponent = SvmComponent.svm_root) extends SvmObject(name) { 
-    val children = ArrayBuffer.empty[SvmComponent]
+class SvmComponent extends SvmObject { 
+    var parent: SvmComponent = null
+    var children = scala.collection.mutable.LinkedHashSet.empty[SvmComponent]
+    private var registered = false
 
     override def getFullName(): String = {
         if (parent == null) {
-            name
+            getTypeName()
         } else {
-            parent.getFullName() + "." + name
+            parent.getFullName() + "." + getName()
         }
     }
     
@@ -21,30 +25,59 @@ class SvmComponent(name: String = "null", parent: SvmComponent = SvmComponent.sv
     
     
     def buildPhase(phase: SvmPhase): Unit = {
-        svmHigh(f"${getFullName()} entering ${phase.getPhaseName}")
+        svmLow(f"${getFullName()} entering ${phase.getPhaseName}")
     }
     def connectPhase(phase: SvmPhase): Unit = {
-        svmHigh(f"${getFullName()} entering ${phase.getPhaseName}")
+        svmLow(f"${getFullName()} entering ${phase.getPhaseName}")
     }
     def runPhase(phase: SvmPhase): Unit = {
-        svmHigh(f"${getFullName()} entering ${phase.getPhaseName}")
+        svmLow(f"${getFullName()} entering ${phase.getPhaseName}")
     }
     def checkPhase(phase: SvmPhase): Unit = {
-        svmHigh(f"${getFullName()} entering ${phase.getPhaseName}")
+        svmLow(f"${getFullName()} entering ${phase.getPhaseName}")
     }
     
-    private def register(): Unit = {
-        if (parent != null) parent.children.addOne(this)
-        SvmPhaseManager.phaseBuild.addOneTask(this)(buildPhase)
-        SvmPhaseManager.phaseConnect.addOneTask(this)(connectPhase)
-        SvmPhaseManager.phaseRun.addOneTask(this)(runPhase)
-        SvmPhaseManager.phaseCheck.addOneTask(this)(checkPhase)
+    def register(): Unit = {
+        if (!registered) {
+            if (parent == null) {
+                parent = SvmRoot
+                SvmRoot.children += this
+            }
+            SvmPhaseManager.phaseBuild.addOneTask(this)(buildPhase)
+            SvmPhaseManager.phaseConnect.addOneTask(this)(connectPhase)
+            SvmPhaseManager.phaseRun.addOneTask(this)(runPhase)
+            SvmPhaseManager.phaseCheck.addOneTask(this)(checkPhase)
+            registered = true
+        }
     }
     
-    register()
+    
+    override def valCallback[T](ref: T, name: String): T = {
+        ref match {
+            case comp: SvmComponent => // All sub SVC
+                comp.parent = this
+                comp.setName(name)
+                if (this.children == null) children = scala.collection.mutable.LinkedHashSet.empty[SvmComponent]
+                this.children.addOne(comp)
+                comp.register()
+            case obj: SvmObject => obj.setName(name) // All other svm objects
+            case _ => {}
+        }
+        ref
+    }
+}
+
+object SvmRoot extends SvmComponent {
+    parent = null
+    name = "svm_root"
+    override def register(): Unit = {}
+    override def getFullName(): String = "SvmRoot"
 }
 
 object SvmComponent {
-    val svm_root: SvmComponent = new SvmComponent("svm_root", null)
-    def getTopSvc: SvmComponent = svm_root.children.head
+    def getTopSvc: scala.collection.mutable.LinkedHashSet[SvmComponent] = {
+        val tops = SvmRoot.children
+        tops.foreach(top => top.setName(top.getTypeName()))
+        tops
+    }
 }

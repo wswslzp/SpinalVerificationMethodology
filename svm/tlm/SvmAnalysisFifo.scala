@@ -2,9 +2,9 @@ package svm.tlm
 import svm.base._
 import spinal.core.sim._
 
-class SvmAnalysisFifo[T <: SvmObject](name: String) extends SvmObject(name) {
+class SvmAnalysisFifo[T <: SvmObject] extends SvmObject {
     val queue = scala.collection.mutable.Queue[T]()
-    val export = new SvmAnalysisExport[T](f"${name}_exp")
+    val export = new SvmAnalysisExport[T]()
     
     export afterWrite { obj =>
         queue.enqueue(obj)

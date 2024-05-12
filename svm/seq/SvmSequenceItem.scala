@@ -1,5 +1,5 @@
 package svm.seq
 
-abstract class SvmSequenceItem(name: String) extends SvmTransaction(name) {
+abstract class SvmSequenceItem extends SvmTransaction {
 
 }

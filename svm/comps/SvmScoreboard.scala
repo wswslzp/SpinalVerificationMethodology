@@ -3,9 +3,9 @@ package svm
 import svm.base._
 import svm.tlm.SvmAnalysisFifo
 
-class SvmScoreboard[T<:SvmObject](name: String, parent: SvmComponent) extends SvmComponent(name, parent) {
-    val actFifo = new SvmAnalysisFifo[T](f"${getFullName()}.act_fifo")
-    val expFifo = new SvmAnalysisFifo[T](f"${getFullName()}.exp_fifo")
+class SvmScoreboard[T<:SvmObject] extends SvmComponent {
+    val actFifo = new SvmAnalysisFifo[T]
+    val expFifo = new SvmAnalysisFifo[T]
     private var matchedFunc = (act: T, exp: T) => {}
     private var mismatchedFunc = (act: T, exp: T) => {}
     

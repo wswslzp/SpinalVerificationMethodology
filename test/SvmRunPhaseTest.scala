@@ -10,8 +10,8 @@ class ARTL extends Component {
     io.b := RegNext(io.a)
 }
 
-class TbEnv(name: String) extends SvmComponent(name, SvmComponent.svm_root) {
-    val drv_a = new SvmComponent("drv_a", this) {
+class TbEnv extends SvmComponent {
+    val drv_a = new SvmComponent {
         def rtl: ARTL = SvmRunTest.dut.asInstanceOf[ARTL]
         override def runPhase(phase: SvmPhase): Unit = {
             // drive the rtl
@@ -29,7 +29,7 @@ class TbEnv(name: String) extends SvmComponent(name, SvmComponent.svm_root) {
         }
     }
     
-    val mon_b = new SvmComponent("mon_a", this) {
+    val mon_b = new SvmComponent {
         def rtl: ARTL = SvmRunTest.dut.asInstanceOf[ARTL]
         override def runPhase(phase: SvmPhase): Unit = {
             // monitor the rtl
@@ -45,7 +45,7 @@ class TbEnv(name: String) extends SvmComponent(name, SvmComponent.svm_root) {
 }
     
 class ATest(rtl: ARTL) {
-    val tb = new TbEnv("env")
+    val tb = new TbEnv
     SvmRunTest.dut = rtl
     SvmRunTest()
 }

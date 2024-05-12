@@ -5,8 +5,8 @@ import svm.tlm.SvmAnalysisExport
 import svm.tlm.SvmAnalysisFifo
 import svm.tlm.SvmAnalysisPort
 
-class SvmSubscriber[T<:SvmObject](name: String, parent: SvmComponent) extends SvmComponent(name, parent) {
-    val exp = new SvmAnalysisExport[T](f"${getFullName()}.exp")
-    val fifo = new SvmAnalysisFifo[T](f"${getFullName()}.fifo")
-    val ap = new SvmAnalysisPort[T](f"${getFullName()}.ap")
+class SvmSubscriber[T<:SvmObject] extends SvmComponent {
+    val exp = new SvmAnalysisExport[T]()
+    val fifo = new SvmAnalysisFifo[T]()
+    val ap = new SvmAnalysisPort[T]()
 }

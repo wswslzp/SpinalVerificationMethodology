@@ -1,16 +1,16 @@
 import svm._
 import svm.base._
 import svm.tlm._
+import svm.comps._
 import spinal.core._
 import spinal.core.sim._
-import svm.base.SvmComponent.svm_root
 
-case class txn(name: String) extends SvmObject(name) {
+case class txn() extends SvmObject {
     var pd = scala.util.Random.nextInt(1024)
 }
 
-class Sequencer_a(parent: SvmComponent) extends SvmComponent("seqr_a", parent) {
-    val ap = new SvmAnalysisPort[txn]("seqr_a.ap")
+class Sequencer_a extends SvmComponent {
+    val ap = new SvmAnalysisPort[txn]()
     def dut = SvmRunTest.dut.asInstanceOf[SvmRtlForTest]
     
     override def runPhase(phase: SvmPhase): Unit = {
@@ -19,7 +19,7 @@ class Sequencer_a(parent: SvmComponent) extends SvmComponent("seqr_a", parent) {
         super.runPhase(phase)
         val seq = List.tabulate[txn](100)({
             i => {
-                val req = txn(f"TXN_$i")
+                val req = txn().setName(f"TXN_$i")
                 req.pd = i
                 req
             }
@@ -36,8 +36,8 @@ class Sequencer_a(parent: SvmComponent) extends SvmComponent("seqr_a", parent) {
     }
 }
 
-class Driver_a(parent: SvmComponent) extends SvmComponent("drv_a", parent) {
-    val fifo = new SvmAnalysisFifo[txn]("drv_a.fifo")
+class Driver_a extends SvmComponent {
+    val fifo = new SvmAnalysisFifo[txn]()
     def dut = SvmRunTest.dut.asInstanceOf[SvmRtlForTest]
     override def runPhase(phase: SvmPhase): Unit = {
         super.runPhase(phase)
@@ -52,13 +52,13 @@ class Driver_a(parent: SvmComponent) extends SvmComponent("drv_a", parent) {
     }
 }
 
-class Monitor_b(parent: SvmComponent) extends SvmComponent("mon_b", parent) {
-    val ap = new SvmAnalysisPort[txn]("mon_b.ap")
+class Monitor_b extends SvmComponent {
+    val ap = new SvmAnalysisPort[txn]()
     def dut = SvmRunTest.dut.asInstanceOf[SvmRtlForTest]
     override def runPhase(phase: SvmPhase): Unit = {
         super.runPhase(phase)
         while (true) {
-            val rsp = txn("rsp")
+            val rsp = txn()
             val randomDelay = scala.util.Random.nextInt(10) // ready has 10 cycle random stall
             dut.io.mst_b.ready #= false
             for(cyc <- 0 until randomDelay) {
@@ -74,9 +74,9 @@ class Monitor_b(parent: SvmComponent) extends SvmComponent("mon_b", parent) {
     }
 }
 
-class Subscriber_b(parent: SvmComponent) extends SvmComponent("sub_b", parent) {
-    val fifo = new SvmAnalysisFifo[txn]("sub_b.fifo")
-    val ap = new SvmAnalysisPort[txn]("sub_b.ap")
+class Subscriber_b extends SvmComponent {
+    val fifo = new SvmAnalysisFifo[txn]()
+    val ap = new SvmAnalysisPort[txn]()
     override def runPhase(phase: SvmPhase): Unit = {
         super.runPhase(phase)
         while (true) {
@@ -87,9 +87,9 @@ class Subscriber_b(parent: SvmComponent) extends SvmComponent("sub_b", parent) {
     }
 }
 
-class Scoreboard(parent: SvmComponent) extends SvmComponent("scb", parent) {
-    val act_fifo = new SvmAnalysisFifo[txn]("scb.act_fifo")
-    val exp_fifo = new SvmAnalysisFifo[txn]("scb.exp_fifo")
+class Scoreboard() extends SvmComponent() {
+    val act_fifo = new SvmAnalysisFifo[txn]()
+    val exp_fifo = new SvmAnalysisFifo[txn]()
     override def runPhase(phase: SvmPhase): Unit = {
         super.runPhase(phase)
         while (true) {
@@ -105,9 +105,9 @@ class Scoreboard(parent: SvmComponent) extends SvmComponent("scb", parent) {
     }
 }
 
-class Agent_a(parent: SvmComponent) extends SvmComponent("agent_a", parent) {
-    val drv_a = new Driver_a(this)
-    val sqr_a = new Sequencer_a(this)
+class Agent_a() extends SvmComponent() {
+    val drv_a = new Driver_a()
+    val sqr_a = new Sequencer_a()
 
     override def connectPhase(phase: SvmPhase): Unit = {
         super.connectPhase(phase)
@@ -115,25 +115,19 @@ class Agent_a(parent: SvmComponent) extends SvmComponent("agent_a", parent) {
     }
 }
 
-class Agent_b(parent: SvmComponent) extends SvmComponent("agent_b", parent) {
-    val mon_b = new Monitor_b(this)
-    val sub_b = new Subscriber_b(this)
-    override def buildPhase(phase: SvmPhase): Unit = {
-        svmError(f"size of children is ${children.size}")
-    }
+class Agent_b() extends SvmComponent() {
+    val mon_b = new Monitor_b()
+    val sub_b = new Subscriber_b()
     override def connectPhase(phase: SvmPhase): Unit = {
         super.connectPhase(phase)
         mon_b.ap.connect(sub_b.fifo.export)
     }
 }
 
-class Environment(parent: SvmComponent) extends SvmComponent("env", parent) {
-    val agent_a = new Agent_a(this)
-    val agent_b = new Agent_b(this)
-    val scb = new Scoreboard(this)
-    override def buildPhase(phase: SvmPhase): Unit = {
-        svmError(f"size of children is ${children.size}")
-    }
+class Environment() extends SvmComponent() {
+    val agent_a = new Agent_a()
+    val agent_b = new Agent_b()
+    val scb = new Scoreboard()
     override def connectPhase(phase: SvmPhase): Unit = {
         super.connectPhase(phase)
         agent_a.sqr_a.ap.connect(scb.exp_fifo.export)
@@ -141,14 +135,10 @@ class Environment(parent: SvmComponent) extends SvmComponent("env", parent) {
     }
 }
 
-class A_test() extends SvmComponent("A_test", svm_root) {
-    val env = new Environment(this)
+class A_test extends SvmTest {
+    val env = new Environment()
     override def buildPhase(phase: SvmPhase): Unit = {
         this.printTopology()
-    }
-    def runTest(dut: SvmRtlForTest) : Unit = {
-        SvmRunTest.dut = dut
-        SvmRunTest()
     }
 }
 
@@ -156,7 +146,6 @@ object SvmTlmTest extends App {
     SimConfig.withIVerilog.withWave.compile(SvmRtlForTest()).doSim({ dut =>
         dut.clockDomain.forkStimulus(10 ns)
         svmLogLevel("medium")
-        new A_test().runTest(dut)
-        // runrun(dut)
+        SvmRunTest(dut, new A_test())
     })
 }
