@@ -11,7 +11,7 @@ object SvmRunTest {
     }
     def apply[D <: Component, T <: SvmComponent](top: D, tb: T): Unit = {
         dut = top
-        tb.register()
+        tb.registerPhases()
         apply()
     }
 }

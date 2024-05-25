@@ -27,7 +27,7 @@ class Sequencer_a extends SvmSequencer[txn] {
 
         seq.foreach({
             t => 
-                svmHigh(f"sqr_a sending ${t.pd}")
+                // svmHigh(f"sqr_a sending ${t.pd}")
                 ap.write(t)
                 dut.clockDomain.waitSampling()
         })
@@ -42,7 +42,7 @@ class Driver_a extends SvmDriver[txn] {
         super.runPhase(phase)
         while (true) {
             val req = fifo.get()
-            svmHigh(f"drv_a sending ${req.pd}")
+            // svmHigh(f"drv_a sending ${req.pd}")
             dut.io.slv_a.valid #= true 
             dut.io.slv_a.payload #= req.pd
             waitUntil(dut.io.slv_a.ready.toBoolean)
@@ -65,7 +65,7 @@ class Monitor_b extends SvmMonitor[txn] {
             dut.io.mst_b.ready #= true
             waitUntil(dut.io.mst_b.valid.toBoolean)
             rsp.pd = dut.io.mst_b.payload.toInt
-            svmHigh(f"mon_b get ${rsp.pd}")
+            // svmHigh(f"mon_b get ${rsp.pd}")
             ap.write(rsp)
             dut.clockDomain.waitSampling()
         }

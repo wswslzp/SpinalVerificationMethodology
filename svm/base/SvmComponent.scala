@@ -37,7 +37,9 @@ class SvmComponent extends SvmObject {
         svmLow(f"${getFullName()} entering ${phase.getPhaseName}")
     }
     
-    def register(): Unit = {
+    // Register all the phase method into phase manager
+    // If user want to add new phase, this method should be overriden as well.
+    def registerPhases(): Unit = {
         if (!registered) {
             if (parent == null) {
                 parent = SvmRoot
@@ -51,15 +53,21 @@ class SvmComponent extends SvmObject {
         }
     }
     
+    def getClone(): SvmComponent = this.clone().asInstanceOf[SvmComponent]
     
+    // Magic here, 
+    // iterate all the sub SVC here, from the bottom to top, same order as build_phase. 
+    // This method is to build the whole SVM component tree, 
+    // and set the name of the SVC instance identical to the variable name.
+    // This method enable user not to have to set name/parent by hand, but automatically by SVM itself.
     override def valCallback[T](ref: T, name: String): T = {
         ref match {
-            case comp: SvmComponent => // All sub SVC
+            case comp: SvmComponent => 
                 comp.parent = this
                 comp.setName(name)
                 if (this.children == null) children = scala.collection.mutable.LinkedHashSet.empty[SvmComponent]
                 this.children.addOne(comp)
-                comp.register()
+                comp.registerPhases()
             case obj: SvmObject => obj.setName(name) // All other svm objects
             case _ => {}
         }
@@ -70,7 +78,7 @@ class SvmComponent extends SvmObject {
 object SvmRoot extends SvmComponent {
     parent = null
     name = "svm_root"
-    override def register(): Unit = {}
+    override def registerPhases(): Unit = {}
     override def getFullName(): String = "SvmRoot"
 }
 
