@@ -5,6 +5,7 @@ package object svm {
     import spinal.core.sim._
     
     type ValCallback = spinal.idslplugin.ValCallback
+    type PostInitCallback = spinal.idslplugin.PostInitCallback
     
     def svmLogger = {
         val logger = getLogger("SVM")

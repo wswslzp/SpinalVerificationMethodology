@@ -8,6 +8,7 @@ import svm.svmFatal
 class SvmComponent extends SvmObject { 
     var parent: SvmComponent = null
     var children = scala.collection.mutable.LinkedHashSet.empty[SvmComponent]
+    var childrenMap = scala.collection.mutable.LinkedHashMap.empty[String, SvmComponent]
     private var registered = false
 
     override def getFullName(): String = {
@@ -65,13 +66,19 @@ class SvmComponent extends SvmObject {
             case comp: SvmComponent => 
                 comp.parent = this
                 comp.setName(name)
-                if (this.children == null) children = scala.collection.mutable.LinkedHashSet.empty[SvmComponent]
-                this.children.addOne(comp)
-                comp.registerPhases()
+                if (this.childrenMap == null) childrenMap = scala.collection.mutable.LinkedHashMap.empty[String,SvmComponent]
+                this.childrenMap.update(name, comp)
             case obj: SvmObject => obj.setName(name) // All other svm objects
             case _ => {}
         }
         ref
+    }
+    
+    // clean null component
+    override def postInitCallback(): this.type = {
+        this.childrenMap.values.foreach(cd => this.children.addOne(cd))
+        this.children.foreach(_.registerPhases())
+        this
     }
 }
 

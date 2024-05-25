@@ -1,8 +1,9 @@
 package svm.base
 
 import svm.ValCallback
+import svm.PostInitCallback
 
-abstract class SvmObject extends SvmVoid with ValCallback{
+abstract class SvmObject extends SvmVoid with ValCallback with PostInitCallback{
   var name = "null"
 
   // Common methods
@@ -24,6 +25,7 @@ abstract class SvmObject extends SvmVoid with ValCallback{
     }
     ref
   }
+  override def postInitCallback(): this.type = this
 }
 
 object SvmObject {
