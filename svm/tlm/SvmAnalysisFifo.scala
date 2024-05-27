@@ -4,7 +4,7 @@ import spinal.core.sim._
 
 class SvmAnalysisFifo[T <: SvmObject] extends SvmObject {
     val queue = scala.collection.mutable.Queue[T]()
-    val export = new SvmAnalysisExport[T]()
+    val export = !new SvmAnalysisExport[T]()
     
     export afterWrite { obj =>
         queue.enqueue(obj)

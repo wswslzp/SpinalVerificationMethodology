@@ -1,7 +1,4 @@
-import svm.base.SvmComponent
-import svm.base.SvmPhase
-import svm.base.SvmRunTest
-import svm.base.SvmPhaseManager
+import svm.base._
 
 class subA extends SvmComponent {
     override def buildPhase(phase: SvmPhase): Unit = {
@@ -19,9 +16,9 @@ class subA extends SvmComponent {
 }
 
 class A extends SvmComponent {
-    val A_a = new subA
-    val A_b = new subA
-    val A_c = new subA
+    val A_a = !new subA
+    val A_b = !new subA
+    val A_c = !new subA
 }
 // test:compile
 object SvmComponentTest extends App {

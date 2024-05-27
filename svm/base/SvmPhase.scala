@@ -24,6 +24,9 @@ abstract class SvmPhase(phaseName: String, timeConsumable: Boolean) {
     def addOneTask(svc: SvmComponent)(task: SvmPhase => Unit) = {
         phaseTasks.addOne((svc, task))
     }
+    def removeOneComponent(svc: SvmComponent): Unit = {
+        phaseTasks.remove(svc)
+    }
     
     def raiseObjection(num: Int = 1): Unit = {
         svmHigh(f"Raise objection, current obj counter = ${object_counter}")

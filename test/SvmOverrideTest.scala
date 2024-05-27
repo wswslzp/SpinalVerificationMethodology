@@ -2,6 +2,7 @@ import svm._
 import svm.base._
 import spinal.core._
 import spinal.core.sim._
+import svm.tlm.SvmAnalysisFifo
 
 class B_subscriber extends Subscriber_b {
     override def runPhase(phase: SvmPhase): Unit = {
@@ -15,16 +16,7 @@ class B_subscriber extends Subscriber_b {
 }
 
 class B_test extends A_test {
-    // SvmFactory.overrideTypeByType("Subscriber_b", new B_subscriber)
-    override val env = new Environment() {
-        println("override env")
-        override val agent_b = new Agent_b {
-            println("override agent_b")
-            override val sub_b = new B_subscriber {
-                println("override sub_b")
-            }
-        }
-    }
+    factory.overrideInstByGlobPattern("*sub_b*", new B_subscriber)
 }
 
 class Human extends ValCallback{
@@ -84,6 +76,22 @@ class School extends ValCallback with PostInitCallback{
     println("Ending School initialization")
 }
 
+class AA extends SvmObject
+class BB extends AA
+
+class C_test extends SvmComponent {
+    val aa = ! new AA 
+    val bb = ! new BB 
+    println(f"aa type is ${aa.getTypeName()}")
+    println(f"bb type is ${bb.getTypeName()}")
+}
+
+class CC_test extends C_test {
+    SvmFactory.overrideInstByGlobPattern("aa", new BB)
+    println(f"aa type is ${aa.getTypeName()}")
+    println(f"bb type is ${bb.getTypeName()}")
+}
+
 // First initialize one var's Father/Super class, 
 // Second initialze this var's Children class,
 // Third call ValCallBack on this var, right after it initialized
@@ -93,39 +101,39 @@ object SvmOverrideTest extends App {
     // val nv = new School
     // nv.stu1.say()
     // println(nv.stu1.name)
-    
-    val nv1 = new School {
-        // Override one var:
-        // first, set the original var = null
-        // second, end Father class (School) initialization.
-        println("In school override")
-        if (stu1 == null) {
-            println("stu1 now is null")
-        } else {
-            println(f"stu1 now is not null, has name ${stu1.name}")
-        }
-
-        override val stu1: Man = new Man {
-            println("In stu1 override")
-            override def say() : Unit = {println("Damn")}
-        }
-        if (stu1 == null) {
-            println("stu1 now is null")
-        } else {
-            println(f"stu1 now is not null, has name ${stu1.name}")
-        }
-        println("Ending new School initialization")
-    }
-    nv1.stu1.say()
-    println(nv1.stu1.name)
-    // println(nv.zliao.gender, nv.zliao.name)
-    // val nv1 = new NV {
-    //     override val zliao = new Man
+    // val cc_test = new CC_test
+    // val nv1 = new School {
+    //     // Override one var:
+    //     // first, set the original var = null
+    //     // second, end Father class (School) initialization.
+    //     println("In school override")
+    //     if (stu1 == null) {
+    //         println("stu1 now is null")
+    //     } else {
+    //         println(f"stu1 now is not null, has name ${stu1.name}")
+    //     }
+    //
+    //     override val stu1: Man = new Man {
+    //         println("In stu1 override")
+    //         override def say() : Unit = {println("Damn")}
+    //     }
+    //     if (stu1 == null) {
+    //         println("stu1 now is null")
+    //     } else {
+    //         println(f"stu1 now is not null, has name ${stu1.name}")
+    //     }
+    //     println("Ending new School initialization")
     // }
+    // nv1.stu1.say()
+    // println(nv1.stu1.name)
+    // // println(nv.zliao.gender, nv.zliao.name)
+    // // val nv1 = new NV {
+    // //     override val zliao = new Man
+    // // }
     SimConfig.withIVerilog.withWave.compile(SvmRtlForTest()).doSim({ dut =>
 
         dut.clockDomain.forkStimulus(10 ns)
-        svmLogLevel("medium")
+        setSvmLogLevel("medium")
         SvmRunTest(dut, new B_test())
     })
 }

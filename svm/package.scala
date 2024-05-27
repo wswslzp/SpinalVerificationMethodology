@@ -1,24 +1,52 @@
+import svm.base._
 package object svm {
-    import org.log4s.getLogger
-    import org.log4s.LogLevel
+    import scribe._
+    import scribe.file._
+    import scribe.file.path.PathPart
     import spinal.core._
     import spinal.core.sim._
-    
+    import java.text.SimpleDateFormat
+    import java.util.{Calendar, Date}
     type ValCallback = spinal.idslplugin.ValCallback
     type PostInitCallback = spinal.idslplugin.PostInitCallback
+    type SvmComponentWrapper = SvmObjectWrapper[SvmComponent]
     
+    val factory = SvmFactory
+    implicit def objWrapperToObj[T <: SvmObject](objWrapper: SvmObjectWrapper[T]): T = objWrapper.getActualObj
+
+    def getrealTime(pattern: String): String = {
+        val timeTag = System.currentTimeMillis()
+        val changeTime = new Date(timeTag)
+        val dataFormat = new SimpleDateFormat(pattern)
+        dataFormat.format(changeTime)
+    }
+
+    var _svmLogLevel = Level.Info
+    var _svmLogFile = "logs/sim.log"
     def svmLogger = {
-        val logger = getLogger("SVM")
+        val logger = Logger()
+            .orphan()
+            .withHandler()
+            .withHandler(writer = FileWriter(_svmLogFile, append = false), formatter = scribe.format.Formatter.compact, outputFormat=scribe.output.format.ASCIIOutputFormat)
+            .withMinimumLevel(_svmLogLevel)
         logger
     }
-    def svmLogLevel(level: String): Unit = {
+    
+    def setSimLogFile(logfile: String): Unit = {
+        _svmLogFile = logfile
+    }
+    
+    val logger = svmLogger
+
+    def setSvmLogLevel(level: String): Unit = {
         level.toLowerCase() match {
-            case "low" => svmLogger(LogLevel.forName("trace"))
-            case "medium" => svmLogger(LogLevel.forName("debug"))
-            case "high" => svmLogger(LogLevel.forName("info"))
-            case "warn" => svmLogger(LogLevel.forName("warn"))
-            case "error" => svmLogger(LogLevel.forName("error"))
-            case _ => svmLogger(LogLevel.forName("info"))
+            case "low" => _svmLogLevel = Level.Trace
+            case "medium" => _svmLogLevel = Level.Debug
+            case "high" => _svmLogLevel = Level.Info
+            case "warn" => _svmLogLevel = Level.Warn
+            case "error" => _svmLogLevel = Level.Error
+            case "fatal" => _svmLogLevel = Level.Fatal
+            case _ => _svmLogLevel = Level.Info
         }
     }
     def svmLow(msg: String) = svmLogger.trace(f"@ ${simTime()} $msg")
@@ -26,7 +54,9 @@ package object svm {
     def svmHigh(msg: String) = svmLogger.info(f"@ ${simTime()} $msg")
     def svmWarn(msg: String) = svmLogger.warn(f"@ ${simTime()} $msg")
     def svmError(msg: String) = svmLogger.error(f"@ ${simTime()} $msg")
-    def svmFatal[E <: Exception](e: Exception)(msg: String) = svmLogger.error(e)(f"@ ${simTime()} $msg")
+    def svmFatal[E <: Exception](e: Exception)(msg: String) = {
+        svmLogger.error(msg, e)
+    }
     
 }
 

@@ -4,8 +4,8 @@ import svm.base._
 import svm.tlm.SvmAnalysisFifo
 
 class SvmScoreboard[T<:SvmObject] extends SvmComponent {
-    val actFifo = new SvmAnalysisFifo[T]
-    val expFifo = new SvmAnalysisFifo[T]
+    val actFifo = !new SvmAnalysisFifo[T]
+    val expFifo = !new SvmAnalysisFifo[T]
     private var matchedFunc = (act: T, exp: T) => {}
     private var mismatchedFunc = (act: T, exp: T) => {}
     

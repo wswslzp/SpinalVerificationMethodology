@@ -7,13 +7,13 @@ val spinalCore = "com.github.spinalhdl" %% "spinalhdl-core" % spinalVersion
 val spinalLib = "com.github.spinalhdl" %% "spinalhdl-lib" % spinalVersion
 val spinalIdslPlugin = compilerPlugin("com.github.spinalhdl" %% "spinalhdl-idsl-plugin" % spinalVersion)
 val log4s = "org.log4s" %% "log4s" % "1.10.0"
-val log4j_sc = "org.apache.logging.log4j" % "log4j-api-scala" % "13.0.0"
-val log4j_core = "org.apache.logging.log4j" % "log4j-core" % "2.19.0" % Runtime
+val scribe = "com.outr" %% "scribe" % "3.6.6"
+val scribe_file = "com.outr" %% "scribe-file" % "3.6.6"
 
 lazy val SpinalVerficationMethodology = (project in file("."))
   .settings(
     Compile / scalaSource := baseDirectory.value / "svm" ,
-    libraryDependencies ++= Seq(spinalCore, spinalLib, spinalIdslPlugin, log4s),
+    libraryDependencies ++= Seq(spinalCore, spinalLib, spinalIdslPlugin, log4s, scribe, scribe_file),
     Test / scalaSource := baseDirectory.value / "test"
   )
 

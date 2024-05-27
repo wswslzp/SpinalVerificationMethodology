@@ -1,13 +1,13 @@
 package svm.tlm
+import svm._
 import svm.base._
-import svm.svmHigh
 
 class SvmAnalysisExport[T <: SvmObject] extends SvmObject {
     val downstreams = scala.collection.mutable.ArrayBuffer[SvmAnalysisExport[T]]()
     var beforeWritingTask : T => Unit = null
     var afterWritingTask : T => Unit = null
     def connect(exp: SvmAnalysisExport[T]) : this.type = {
-        svmHigh(f"${this.getFullName()} connects ${exp.getFullName()}")
+        svmLow(f"${this.getFullName()} connects ${exp.getFullName()}")
         downstreams.addOne(exp)
         this
     }

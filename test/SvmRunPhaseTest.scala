@@ -1,6 +1,8 @@
 import svm.base._
 import spinal.core._
 import spinal.core.sim._
+import svm.svmLow
+import svm.setSvmLogLevel
 
 class ARTL extends Component {
     val io = new Bundle {
@@ -11,7 +13,7 @@ class ARTL extends Component {
 }
 
 class TbEnv extends SvmComponent {
-    val drv_a = new SvmComponent {
+    val drv_a = !new SvmComponent {
         def rtl: ARTL = SvmRunTest.dut.asInstanceOf[ARTL]
         override def runPhase(phase: SvmPhase): Unit = {
             // drive the rtl
@@ -29,7 +31,7 @@ class TbEnv extends SvmComponent {
         }
     }
     
-    val mon_b = new SvmComponent {
+    val mon_b = !new SvmComponent {
         def rtl: ARTL = SvmRunTest.dut.asInstanceOf[ARTL]
         override def runPhase(phase: SvmPhase): Unit = {
             // monitor the rtl
@@ -45,14 +47,16 @@ class TbEnv extends SvmComponent {
 }
     
 class ATest(rtl: ARTL) {
-    val tb = new TbEnv
-    SvmRunTest.dut = rtl
-    SvmRunTest()
+    val tb = !new TbEnv
+    setSvmLogLevel("low")
+    tb.getActualObj.printTopology()
+    SvmRunTest(rtl, tb.getActualObj)
 }
 
 object SvmRunPhaseTest extends App{
     SimConfig.withIVerilog.compile(new ARTL).doSim {a =>
         a.clockDomain.forkStimulus(10)
+        setSvmLogLevel("low")
         new ATest(a)
     }
 }
