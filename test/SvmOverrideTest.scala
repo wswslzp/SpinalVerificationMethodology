@@ -6,17 +6,20 @@ import svm.tlm.SvmAnalysisFifo
 
 class B_subscriber extends Subscriber_b {
     override def runPhase(phase: SvmPhase): Unit = {
-        svmHigh("Subscribe overrided")
+        logger.info("Subscribe overrided")
         while (true) {
             val rsp = fifo.get()
-            svmHigh(f"B_subscriber get ${rsp.pd}")
+            logger.info(f"B_subscriber get ${rsp.pd}")
             ap.write(rsp)
         }
     }
 }
 
 class B_test extends A_test {
-    factory.overrideInstByGlobPattern("*sub_b*", new B_subscriber)
+    override def buildPhase(phase: SvmPhase): Unit = {
+        factory.overrideInstByName("SvmRoot.B_test.env.agent_b.sub_b", new B_subscriber)
+        // factory.overrideInstByGlobPattern("SvmRoot.*.sub_b.*", new B_subscriber)
+    }
 }
 
 class Human extends ValCallback{
@@ -24,7 +27,6 @@ class Human extends ValCallback{
     val gender: String = "unknown"
     
     override def valCallback[T](ref: T, name: String): T = {
-        // println(s"var name is $name, var value is $ref")
         ref
     }
     def say(): Unit = {println("NAAA")}
@@ -87,7 +89,7 @@ class C_test extends SvmComponent {
 }
 
 class CC_test extends C_test {
-    SvmFactory.overrideInstByGlobPattern("aa", new BB)
+    // SvmFactory.overrideInstByGlobPattern("aa", new BB)
     println(f"aa type is ${aa.getTypeName()}")
     println(f"bb type is ${bb.getTypeName()}")
 }
@@ -133,7 +135,10 @@ object SvmOverrideTest extends App {
     SimConfig.withIVerilog.withWave.compile(SvmRtlForTest()).doSim({ dut =>
 
         dut.clockDomain.forkStimulus(10 ns)
-        setSvmLogLevel("medium")
-        SvmRunTest(dut, new B_test())
+        setSvmLogLevel("low")
+        setSimLogFile("logs/SvmOverrideTest.log")
+        val test = new B_test
+        test.printTopology()
+        SvmRunTest(dut, test)
     })
 }

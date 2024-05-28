@@ -3,9 +3,6 @@ import svm._
 import svm.base._
 import spinal.core._
 import scala.collection.mutable.ArrayBuffer
-import svm.svmError
-import svm.svmFatal
-import svm.svmMedium
 
 class SvmComponent extends SvmObject { 
     var parent: SvmComponent = null
@@ -22,45 +19,36 @@ class SvmComponent extends SvmObject {
     }
     
     def printTopology(): Unit = {
-        svmMedium(this.getFullName())
+        logger.debug(this.getFullName())
         children.foreach(c => c.printTopology())
     }
     
     
     def buildPhase(phase: SvmPhase): Unit = {
-        svmLow(f"${getFullName()} entering ${phase.getPhaseName}")
+        logger.trace(f"${getFullName()} entering ${phase.getPhaseName}")
     }
     def connectPhase(phase: SvmPhase): Unit = {
-        svmLow(f"${getFullName()} entering ${phase.getPhaseName}")
+        logger.trace(f"${getFullName()} entering ${phase.getPhaseName}")
     }
     def runPhase(phase: SvmPhase): Unit = {
-        svmLow(f"${getFullName()} entering ${phase.getPhaseName}")
+        logger.trace(f"${getFullName()} entering ${phase.getPhaseName}")
     }
     def checkPhase(phase: SvmPhase): Unit = {
-        svmLow(f"${getFullName()} entering ${phase.getPhaseName}")
+        logger.trace(f"${getFullName()} entering ${phase.getPhaseName}")
     }
     
     // Register all the phase method into phase manager
     // If user want to add new phase, this method should be overriden as well.
     def registerPhases(): Unit = {
         if (!registered) {
-            if (parent == null) {
-                val thisWrapper = !this
-                parent = SvmRoot
-                SvmRoot.children += thisWrapper
-                SvmRoot.childrenObj.addOne(thisWrapper)
-                SvmRoot.updateChildrenWrapperName()
-            }
-            SvmPhaseManager.phaseBuild.addOneTask(this)(buildPhase)
-            SvmPhaseManager.phaseConnect.addOneTask(this)(connectPhase)
-            SvmPhaseManager.phaseRun.addOneTask(this)(runPhase)
-            SvmPhaseManager.phaseCheck.addOneTask(this)(checkPhase)
+            SvmPhaseManager.addOneComponent(this)
             registered = true
         }
     }
     
     def getClone(): SvmComponent = this.clone().asInstanceOf[SvmComponent]
     def removeFromTree(): Unit = {
+        // this.parent = null
         this.parent.children = this.parent.children.filterNot(_.objHashCode == this.hashCode())
         this.parent.childrenMap = this.parent.childrenMap.filterNot({case (name, sow) => sow.objHashCode == this.hashCode()})
     }
@@ -79,7 +67,6 @@ class SvmComponent extends SvmObject {
                         comp.parentScope = this /// Idealy it's a SvmObject concept
                         comp.setName(name)
                         objWrapper.updateName(f"${name}#${comp.hashCode()}@${this.hashCode()}")
-                        svmLow(f"objWrapper.updateName(${f"${name}#${comp.hashCode()}@${this.hashCode()}"})")
                         if (this.childrenMap == null) childrenMap = scala.collection.mutable.LinkedHashMap.empty[String, SvmComponentWrapper]
                         this.childrenMap.update(name, objWrapper.asInstanceOf[SvmComponentWrapper])
                     case obj: SvmObject => 
@@ -89,12 +76,12 @@ class SvmComponent extends SvmObject {
                 }
                 childrenObj.addOne(objWrapper.asInstanceOf[SvmObjectWrapper[SvmObject]])
             case comp: SvmComponent => 
-                svmWarn(f"Unmanaged SvmComonent ${comp.toString()} by factory")
+                logger.warn(f"Unmanaged SvmComonent ${comp.toString()} by factory")
                 // throw new InstantiationException("SVM Component should be wrapped.")
             case obj: SvmObject => 
                 obj.setName(name) // All other svm objects
                 obj.parentScope = this
-                svmWarn(f"Unmanaged SvmObject ${obj.toString()} by factory")
+                logger.warn(f"Unmanaged SvmObject ${obj.toString()} by factory")
             case _ => {}
         }
         ref
@@ -111,7 +98,15 @@ class SvmComponent extends SvmObject {
 
 object SvmRoot extends SvmComponent {
     parent = null
-    name = "svm_root"
+    
+    def addOneTest(test: SvmComponent): Unit = {
+        val testWrapper = !test
+        testWrapper.parent = this
+        testWrapper.parentScope = this
+        this.children.addOne(testWrapper)
+        this.childrenObj.addOne(testWrapper)
+        this.updateChildrenWrapperName()
+    }
     override def registerPhases(): Unit = {}
     override def getFullName(): String = "SvmRoot"
 }

@@ -1,8 +1,12 @@
 import svm.base._
 package object svm {
     import scribe._
+    import scribe.format._
     import scribe.file._
     import scribe.file.path.PathPart
+    import perfolation._
+    import scribe.data.MDC
+    import scribe.output.{CompositeOutput, EmptyOutput, LogOutput, TextOutput}
     import spinal.core._
     import spinal.core.sim._
     import java.text.SimpleDateFormat
@@ -21,23 +25,25 @@ package object svm {
         dataFormat.format(changeTime)
     }
 
+    object SvmSimTime extends FormatBlock {
+        override def format[M](record: LogRecord[M]): LogOutput = new TextOutput(s"${simTime().toString()}")
+    }
     var _svmLogLevel = Level.Info
     var _svmLogFile = "logs/sim.log"
-    def svmLogger = {
-        val logger = Logger()
+    lazy val svmCompatFormat: Formatter = formatter"SVM ${string("[")}$levelColored${string("]")} ${green(position)} @${SvmSimTime} $message$mdc"
+    def logger = {
+        val _logger = Logger()
             .orphan()
             .withHandler()
-            .withHandler(writer = FileWriter(_svmLogFile, append = false), formatter = scribe.format.Formatter.compact, outputFormat=scribe.output.format.ASCIIOutputFormat)
+            .withHandler(writer = FileWriter(_svmLogFile, append = false), formatter = svmCompatFormat, outputFormat=scribe.output.format.ASCIIOutputFormat)
             .withMinimumLevel(_svmLogLevel)
-        logger
+        _logger
     }
     
     def setSimLogFile(logfile: String): Unit = {
         _svmLogFile = logfile
     }
     
-    val logger = svmLogger
-
     def setSvmLogLevel(level: String): Unit = {
         level.toLowerCase() match {
             case "low" => _svmLogLevel = Level.Trace
@@ -49,14 +55,5 @@ package object svm {
             case _ => _svmLogLevel = Level.Info
         }
     }
-    def svmLow(msg: String) = svmLogger.trace(f"@ ${simTime()} $msg")
-    def svmMedium(msg: String) = svmLogger.debug(f"@ ${simTime()} $msg")
-    def svmHigh(msg: String) = svmLogger.info(f"@ ${simTime()} $msg")
-    def svmWarn(msg: String) = svmLogger.warn(f"@ ${simTime()} $msg")
-    def svmError(msg: String) = svmLogger.error(f"@ ${simTime()} $msg")
-    def svmFatal[E <: Exception](e: Exception)(msg: String) = {
-        svmLogger.error(msg, e)
-    }
-    
 }
 

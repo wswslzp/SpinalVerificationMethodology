@@ -29,5 +29,5 @@ object SvmComponentTest extends App {
     val tasks = SvmPhaseManager.phaseBuild.phaseTasks.map(_._2)
     // svc.foreach(println(_))
     println(f"svc num is ${svc.size}")
-    SvmRunTest()
+    SvmRunTest.runAllTest()
 }

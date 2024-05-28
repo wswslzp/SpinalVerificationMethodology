@@ -11,11 +11,11 @@ object SvmLoggingTest extends App {
   //   .withMinimumLevel(Level.Trace)
 
   for (i <- 1 to 10) {
-    svmLogger.info(f" Num $i")
+    logger.info(f" Num $i")
   }
   setSvmLogLevel("low")
   for (i <- 1 to 10) {
-    svmLogger.trace(f" Num $i")
+    logger.trace(f" Num $i")
   }
 
   // println(f"logger.handlers.size = ${logger.handlers.size}, logger.modifiers.size = ${logger.modifiers.size}")

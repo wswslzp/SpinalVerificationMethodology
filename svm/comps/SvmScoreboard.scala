@@ -2,6 +2,7 @@ package svm
 
 import svm.base._
 import svm.tlm.SvmAnalysisFifo
+import svm.logger
 
 class SvmScoreboard[T<:SvmObject] extends SvmComponent {
     val actFifo = !new SvmAnalysisFifo[T]
@@ -18,7 +19,7 @@ class SvmScoreboard[T<:SvmObject] extends SvmComponent {
             val act_txn = actFifo.get()
             val exp_txn = expFifo.peek()
             exp_txn match {
-                case None => svmError(f"Data no match")
+                case None => logger.error(f"Data no match")
                 case Some(value) => 
                     if (!(value.equals(act_txn))) mismatchedFunc(act_txn, value)
                     else matchedFunc(act_txn, value)

@@ -1,15 +1,21 @@
 package svm.base
 
+import scala.reflect.ClassTag
+
 class SvmObjectWrapper[+T <: SvmObject](val obj: T, val objHashCode: Int) {
     def getActualObj = {
         val objInstName = SvmObjectWrapper.objHashNameMap.getOrElse(this.objHashCode, SvmObjectWrapper.objTempName)
         val tryGetSvmObj = SvmObjectWrapper.objNameInstMap.get(objInstName)
         if (tryGetSvmObj == None) throw new NoSuchElementException
-        else tryGetSvmObj.get.asInstanceOf[T]
+        else {
+            tryGetSvmObj.get.asInstanceOf[T]
+        }
     }
     def updateName(newName: String): Unit = {
+        val oldName = SvmObjectWrapper.objHashNameMap.get(this.objHashCode).get
         SvmObjectWrapper.objHashNameMap.update(this.objHashCode, newName)
         SvmObjectWrapper.objNameInstMap.update(newName, this.obj)
+        SvmObjectWrapper.objNameInstMap.remove(oldName)
     }
 }
 

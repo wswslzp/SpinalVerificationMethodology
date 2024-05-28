@@ -33,7 +33,7 @@ class Sequencer_a extends SvmSequencer[txn] {
         super.runPhase(phase)
         val seq = List.tabulate[txn](100)({
             i => {
-                val req = !txn().setName(f"TXN_$i")
+                val req = txn().setName(f"TXN_$i")
                 req.pd = i
                 req
             }
@@ -41,7 +41,7 @@ class Sequencer_a extends SvmSequencer[txn] {
 
         seq.foreach({
             t => 
-                svmLow(f"sqr_a sending ${t.pd}")
+                logger.info(f"sqr_a sending ${t.pd}")
                 ap.write(t)
                 dut.clockDomain.waitSampling()
         })
@@ -56,7 +56,7 @@ class Driver_a extends SvmDriver[txn] {
         super.runPhase(phase)
         while (true) {
             val req = fifo.get()
-            svmHigh(f"drv_a sending ${req.pd}")
+            logger.info(f"drv_a sending ${req.pd}")
             dut.io.slv_a.valid #= true 
             dut.io.slv_a.payload #= req.pd
             waitUntil(dut.io.slv_a.ready.toBoolean)
@@ -79,7 +79,7 @@ class Monitor_b extends SvmMonitor[txn] {
             dut.io.mst_b.ready #= true
             waitUntil(dut.io.mst_b.valid.toBoolean)
             rsp.pd = dut.io.mst_b.payload.toInt
-            svmHigh(f"mon_b get ${rsp.pd}")
+            logger.info(f"mon_b get ${rsp.pd}")
             ap.write(rsp)
             dut.clockDomain.waitSampling()
         }
@@ -91,7 +91,7 @@ class Subscriber_b extends SvmSubscriber[txn] {
         super.runPhase(phase)
         while (true) {
             val rsp = fifo.get()
-            svmHigh(f"sub_b get ${rsp.pd}")
+            logger.info(f"sub_b get ${rsp.pd}")
             ap.write(rsp)
         }
     }
@@ -102,7 +102,7 @@ class Agent_a() extends SvmAgent {
     val sqr_a = ! new Sequencer_a()
 
     override def buildPhase(phase: SvmPhase): Unit = {
-        svmLow(f"[Connection] ${sqr_a.ap.getFullName()} >> ${drv_a.fifo.export.getFullName()}")
+        logger.trace(f"[Connection] ${sqr_a.ap.getFullName()} >> ${drv_a.fifo.export.getFullName()}")
     }
 
     override def connectPhase(phase: SvmPhase): Unit = {
@@ -116,13 +116,13 @@ class Agent_b() extends SvmAgent {
     val sub_b = ! new Subscriber_b()
 
     override def buildPhase(phase: SvmPhase): Unit = {
-        svmLow(f"[Connection] ${mon_b.ap.getFullName()} >> ${sub_b.fifo.export.getFullName()}")
+        logger.trace(f"[Connection] ${mon_b.ap.getFullName()} >> ${sub_b.fifo.export.getFullName()}")
     }
 
     override def connectPhase(phase: SvmPhase): Unit = {
         super.connectPhase(phase)
-        svmMedium(f"mon_b.ap name is ${mon_b.ap.getFullName()}")
-        svmMedium(f"sub_b.fifo.export name is ${sub_b.fifo.export.getFullName()}")
+        logger.debug(f"mon_b.ap name is ${mon_b.ap.getFullName()}")
+        logger.debug(f"sub_b.fifo.export name is ${sub_b.fifo.export.getFullName()}")
         mon_b.ap >> sub_b.fifo.export
     }
 }
@@ -132,16 +132,16 @@ class Environment() extends SvmEnv {
     val agent_b = ! new Agent_b()
     val scb = ! new SvmScoreboard[txn]() {
         override def buildPhase(phase: SvmPhase): Unit = {
-            svmLow(f"exp_fifo name is ${expFifo.getFullName()}")
-            svmLow(f"act_fifo name is ${actFifo.getFullName()}")
+            logger.debug(f"exp_fifo name is ${expFifo.getFullName()}")
+            logger.debug(f"act_fifo name is ${actFifo.getFullName()}")
         }
-        onMatched((a,b) => svmLow("matched"))
-        onMismatched((a,b) => svmError("mismatch"))
+        onMatched((a,b) => logger.debug("matched"))
+        onMismatched((a,b) => logger.error("mismatch"))
     }
     override def connectPhase(phase: SvmPhase): Unit = {
         super.connectPhase(phase)
-        svmMedium(f"[Connection] scb.expFifo.export name is ${scb.expFifo.export.getFullName()}")
-        svmMedium(f"[Connection] sub_b.fifo.export name is ${agent_b.sub_b.fifo.export.getFullName()}")
+        logger.debug(f"[Connection] scb.expFifo.export name is ${scb.expFifo.export.getFullName()}")
+        logger.debug(f"[Connection] sub_b.fifo.export name is ${agent_b.sub_b.fifo.export.getFullName()}")
         agent_a.sqr_a.ap >> scb.expFifo.export
         agent_b.sub_b.ap >> scb.actFifo.export
     }

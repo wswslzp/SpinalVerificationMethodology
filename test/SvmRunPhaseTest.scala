@@ -1,7 +1,6 @@
 import svm.base._
 import spinal.core._
 import spinal.core.sim._
-import svm.svmLow
 import svm.setSvmLogLevel
 
 class ARTL extends Component {

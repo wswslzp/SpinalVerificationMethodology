@@ -3,6 +3,11 @@ import spinal.core._
 import spinal.core.sim._
 import spinal.sim.SimThread
 import svm._
+import svm.logger
+import svm.logger
+import svm.logger
+import svm.logger
+import svm.logger
 
 class PhaseEndWithNoObjection extends Exception
 abstract class SvmPhase(phaseName: String, timeConsumable: Boolean) {
@@ -29,26 +34,26 @@ abstract class SvmPhase(phaseName: String, timeConsumable: Boolean) {
     }
     
     def raiseObjection(num: Int = 1): Unit = {
-        svmHigh(f"Raise objection, current obj counter = ${object_counter}")
+        logger.debug(f"Raise objection, current obj counter = ${object_counter}")
         object_counter += num
     }
     def dropObjection(num: Int = 1): Unit = {
         if (object_counter > 0) {
             object_counter -= num
-            svmHigh(f"Drop objection, current obj counter = ${object_counter}")
+            logger.debug(f"Drop objection, current obj counter = ${object_counter}")
         } else {
-            svmFatal(new RuntimeException)(s"ERROR, object counter=$object_counter less than 0")
+            logger.error(s"ERROR, object counter=$object_counter less than 0", new RuntimeException)
         }
     }
     def setAutoObjection(svc: SvmComponent): Unit = {
         if (!timeConsumable) {
-            svmFatal(new RuntimeException)(f"Objection should be raised/dropped in a time-comsumable phase, not in ${phaseName} phase!!!")
+            logger.error(f"Objection should be raised/dropped in a time-comsumable phase, not in ${phaseName} phase!!!", new RuntimeException)
         } else if (autoObjectSvc == null) {
             autoObjectSvc = svc
-            svmHigh(f"${phaseName} phase now set auto objEction")
+            logger.info(f"${phaseName} phase now set auto objEction")
             val originalTask = phaseTasks.get(svc)
             originalTask match {
-                case None => svmFatal(new RuntimeException)(f"Set objection on a empty ${phaseName} phase of ${svc.getFullName()}")
+                case None => logger.error(f"Set objection on a empty ${phaseName} phase of ${svc.getFullName()}", new RuntimeException)
                 case Some(value) => 
                     def newTask(phase: SvmPhase): Unit = {
                         phase.raiseObjection()
@@ -74,23 +79,23 @@ abstract class SvmPhase(phaseName: String, timeConsumable: Boolean) {
     def waitPhaseEnd(): Unit = {
         val termination = fork {
             delayed(0 ps) {
-                svmHigh(f"Checking objection counter...  ${object_counter}")
-                if (object_counter == 0) svmHigh(f"No one raise objection, skip ${phaseName} phase.")
+                logger.info(f"Checking objection counter...  ${object_counter}")
+                if (object_counter == 0) logger.info(f"No one raise objection, skip ${phaseName} phase.")
             }
             waitUntil(object_counter == 0)
             threads.foreach(_.terminate())
         }
         termination.join()
-        svmHigh(f"End ${getPhaseName} phase")
+        logger.info(f"End ${getPhaseName} phase")
     }
 }
 
 class SvmUpDownPhase(phaseName : String, timeConsumable: Boolean) extends SvmPhase(phaseName, timeConsumable) {
     override def initiateAllTasks(svc: SvmComponent): Unit = {
         val task = phaseTasks.getOrElse(key = svc, default = (p: SvmPhase) => {
-            svmError(f"Phase ${phaseName} NOT FOUND SVC ${svc.getFullName()}")
+            logger.error(f"Phase ${phaseName} NOT FOUND SVC ${svc.getFullName()}", new RuntimeException)
         })
-        svmLow(f"Initiating ${svc.getFullName()} task for ${this.getPhaseName} phase.")
+        logger.debug(f"Initiating ${svc.getFullName()} task for ${this.getPhaseName} phase.")
         initiateOneTask(task)
         svc.children.foreach(c => initiateAllTasks(c))
     }
@@ -100,9 +105,9 @@ class SvmUpDownPhase(phaseName : String, timeConsumable: Boolean) extends SvmPha
 class SvmDownUpPhase(phaseName : String, timeConsumable: Boolean) extends SvmPhase(phaseName, timeConsumable) {
     override def initiateAllTasks(svc: SvmComponent): Unit = {
         val task = phaseTasks.getOrElse(key = svc, default = (p: SvmPhase) => {
-            svmError(f"Phase ${phaseName} NOT FOUND SVC ${svc.getFullName()}")
+            logger.error(f"Phase ${phaseName} NOT FOUND SVC ${svc.getFullName()}", new RuntimeException)
         })
-        svmLow(f"Initiating ${svc.getFullName()} task for ${this.getPhaseName} phase.")
+        logger.debug(f"Initiating ${svc.getFullName()} task for ${this.getPhaseName} phase.") // FIXME: Stack overflow here
         svc.children.foreach(c => initiateAllTasks(c))
         initiateOneTask(task)
     }

@@ -2,7 +2,6 @@ package svm.base
 import svm._
 import svm.ValCallback
 import svm.PostInitCallback
-import svm.svmWarn
 
 abstract class SvmObject extends SvmVoid with ValCallback with PostInitCallback {
   var name = "nullObject"
@@ -19,7 +18,6 @@ abstract class SvmObject extends SvmVoid with ValCallback with PostInitCallback 
     if (parentScope != null) {
       parentScope match {
         case comp: SvmComponent => 
-          svmLow(f"use comp.getFullName(); comp.getFullName() = ${comp.getFullName()}")
           comp.getFullName() + "." + name
         case obj: SvmObject => obj.getFullName() + "." + name
         case _ => name
@@ -40,14 +38,13 @@ abstract class SvmObject extends SvmVoid with ValCallback with PostInitCallback 
             obj.setName(name)
             obj.parentScope = this
             objWrapper.updateName(f"${name}#${obj.hashCode()}@${this.hashCode()}")
-            svmLow(f"objWrapper.updateName(${f"${name}#${obj.hashCode()}@${this.hashCode()}"})")
           case _              => {}
         }
         childrenObj.addOne(objWrapper.asInstanceOf[SvmObjectWrapper[SvmObject]])
       case obj: SvmObject => 
         obj.setName(name)
         obj.parentScope = this
-        svmWarn(f"Unmanaged SvmObject ${obj.toString()} by factory")
+        logger.warn(f"Unmanaged SvmObject ${obj.toString()} by factory")
       case _              => {}
     }
     ref
@@ -55,9 +52,8 @@ abstract class SvmObject extends SvmVoid with ValCallback with PostInitCallback 
 
   def updateChildrenWrapperName(): Unit = {
       childrenObj.foreach({obj=>
-          svmLow(f"obj.updateName(${obj.getFullName()})")
           obj.updateName(obj.getFullName())
-          obj.childrenObj.foreach(_.updateChildrenWrapperName())
+          obj.updateChildrenWrapperName()
       })
   }
 
