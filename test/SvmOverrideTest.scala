@@ -6,6 +6,7 @@ import svm.tlm.SvmAnalysisFifo
 
 class B_subscriber extends Subscriber_b {
     override def runPhase(phase: SvmPhase): Unit = {
+        super.runPhase(phase)
         logger.info("Subscribe overrided")
         while (true) {
             val rsp = fifo.get()
@@ -17,6 +18,7 @@ class B_subscriber extends Subscriber_b {
 
 class B_test extends A_test {
     override def buildPhase(phase: SvmPhase): Unit = {
+        super.buildPhase(phase)
         factory.overrideInstByName("SvmRoot.B_test.env.agent_b.sub_b", new B_subscriber)
         // factory.overrideInstByGlobPattern("SvmRoot.*.sub_b.*", new B_subscriber)
     }

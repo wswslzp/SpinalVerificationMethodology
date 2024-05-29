@@ -33,7 +33,7 @@ class Sequencer_a extends SvmSequencer[txn] {
         super.runPhase(phase)
         val seq = List.tabulate[txn](100)({
             i => {
-                val req = txn().setName(f"TXN_$i")
+                val req = !txn().setName(f"TXN_$i")
                 req.pd = i
                 req
             }

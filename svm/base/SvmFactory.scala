@@ -9,6 +9,15 @@ import svm.SvmComponentWrapper
 import scala.reflect.ClassTag
 
 object SvmFactory {
+    val typeCreatorMap = scala.collection.mutable.LinkedHashMap.empty[String, () => SvmObject]
+    
+    def addOneTypeCreator[T<:SvmObject](name: String, creator: => T): Unit = {
+        typeCreatorMap.update(name, () => creator)
+    }
+    def getCreatorByTypeName(name: String): Option[()=>SvmObject] = {
+        typeCreatorMap.get(name).asInstanceOf[Option[()=>SvmObject]]
+    }
+
     def matchGlob(pattern: String, input: String): Boolean = {
         val matcher = FileSystems.getDefault.getPathMatcher("glob:" + pattern)
         matcher.matches(Paths.get(input))
@@ -17,35 +26,41 @@ object SvmFactory {
     def overrideInstByName[T<:SvmObject](name: String, newObjCreator: => T)(implicit t: ClassTag[T]): Unit = {
         val targetObj = newObjCreator // To create a new object each time call this function
         val targetObjWrapper = !targetObj
-        val srcObj = SvmObjectWrapper.objNameInstMap.get(name).get
-        if (targetObj.isInstanceOf[T]) {
-            targetObj match {
-                case targetComp: SvmComponent => 
-                    // FIXME: children being itself
-                    val srcComp = srcObj.asInstanceOf[SvmComponent]
-                    targetComp.setName(srcComp.getName())
-                    val targetCompWrapper = targetObjWrapper.asInstanceOf[SvmComponentWrapper]
-                    targetComp.parent = srcComp.parent
-                    targetComp.parent.children.addOne(targetCompWrapper)
-                    targetComp.parent.childrenMap.addOne((name, targetCompWrapper))
-                    // targetComp.children = srcComp.children
-                    srcComp.removeFromTree()
+        val _srcObj = SvmObjectWrapper.objNameInstMap.get(name)
+        _srcObj match {
+            case Some(srcObj) => 
+                val srcObjType = srcObj.getTypeName()
+                addOneTypeCreator(srcObjType, newObjCreator)
+                if (targetObj.isInstanceOf[srcObj.type]) {
+                    targetObj match {
+                        case targetComp: SvmComponent => 
+                            val srcComp = srcObj.asInstanceOf[SvmComponent]
+                            targetComp.setName(srcComp.getName())
+                            val targetCompWrapper = targetObjWrapper.asInstanceOf[SvmComponentWrapper]
+                            targetComp.parent = srcComp.parent
+                            targetComp.parent.children.addOne(targetCompWrapper)
+                            targetComp.parent.childrenMap.addOne((name, targetCompWrapper))
+                            srcComp.removeFromTree()
 
-                    targetComp.parentScope = srcComp.parentScope
-                    targetComp.parentScope.childrenObj = targetComp.parentScope.childrenObj.filterNot(_.obj.hashCode == srcComp.hashCode()).addOne(targetCompWrapper)
+                            targetComp.parentScope = srcComp.parentScope
+                            targetComp.parentScope.childrenObj = targetComp.parentScope.childrenObj.filterNot(_.obj.hashCode == srcComp.hashCode()).addOne(targetCompWrapper)
 
-                    SvmPhaseManager.removeOneComponentFromAllPhases(srcComp)
-                    SvmPhaseManager.addOneComponent(targetComp)
-                    SvmObjectWrapper.objNameInstMap.update(name, targetComp)
-                    val comp1 = SvmObjectWrapper.objNameInstMap.get(name).get.asInstanceOf[SvmComponent]
-                case obj: SvmObject => 
-                    targetObj.setName(obj.getName())
-                    targetObj.parentScope = srcObj.parentScope
-                    targetObj.parentScope.childrenObj = targetObj.parentScope.childrenObj.filterNot(_.obj.hashCode == srcObj.hashCode()).addOne(targetObjWrapper)
-                    SvmObjectWrapper.objNameInstMap.update(name, targetObj)
-                case _ => 
-            }
+                            SvmPhaseManager.removeOneComponentFromAllPhases(srcComp)
+                            SvmPhaseManager.addOneComponent(targetComp)
+                            targetCompWrapper.updateName(name)
+                        case obj: SvmObject => 
+                            targetObj.setName(obj.getName())
+                            targetObj.parentScope = srcObj.parentScope
+                            targetObj.parentScope.childrenObj = targetObj.parentScope.childrenObj.filterNot(_.obj.hashCode == srcObj.hashCode()).addOne(targetObjWrapper)
+                            targetObjWrapper.updateName(name)
+                        case _ => 
+                    }
+                }
+            case None => 
+                logger.error(f"$name does not has corresponding object, will exit.")
+                throw new NoSuchElementException
         }
+        targetObjWrapper.updateChildrenWrapperName()
     }
     
     // override method should be called before the instance declaration/creation
@@ -54,7 +69,6 @@ object SvmFactory {
     // then this instance will be overriden by the destined instance
     // TODO: Glob pattern is not correctly, should work with type checking method
     def overrideInstByGlobPattern[T<:SvmObject](pattern: String, newObjCreator: => T)(implicit t: ClassTag[T]): Unit = {
-        logger.trace(f"overrideInstByGlobPattern")
         SvmObjectWrapper.objNameInstMap.keys.filter(matchGlob(pattern, _)).foreach({matchedName => 
             overrideInstByName(matchedName, newObjCreator)
         })
@@ -63,5 +77,8 @@ object SvmFactory {
         SvmObjectWrapper.objNameInstMap.keys.filter(_.matches(pattern)).foreach({matchedName => 
             overrideInstByName(matchedName, newObjCreator)
         })
+    }
+    def overrideInstByTypeAndGlobPattern[T<:SvmObject](pattern: String, oldType: String, newObjCreator: => T)(implicit t: ClassTag[T]): Unit = {
+
     }
 }
