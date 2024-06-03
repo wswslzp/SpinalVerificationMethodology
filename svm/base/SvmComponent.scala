@@ -49,8 +49,8 @@ class SvmComponent extends SvmObject {
     def getClone(): SvmComponent = this.clone().asInstanceOf[SvmComponent]
     def removeFromTree(): Unit = {
         // this.parent = null
-        this.parent.children = this.parent.children.filterNot(_.objHashCode == this.hashCode())
-        this.parent.childrenMap = this.parent.childrenMap.filterNot({case (name, sow) => sow.objHashCode == this.hashCode()})
+        this.parent.children = this.parent.children.filterNot(_.objInstId == this.getInstID())
+        this.parent.childrenMap = this.parent.childrenMap.filterNot({case (name, sow) => sow.objInstId == this.getInstID()})
     }
     
     // Magic here, 
@@ -66,13 +66,13 @@ class SvmComponent extends SvmObject {
                         comp.parent = this
                         comp.parentScope = this /// Idealy it's a SvmObject concept
                         comp.setName(name)
-                        objWrapper.updateName(f"${name}#${comp.hashCode()}@${this.hashCode()}")
+                        objWrapper.updateName(f"${name}#${comp.getInstID()}@${this.getInstID()}")
                         if (this.childrenMap == null) childrenMap = scala.collection.mutable.LinkedHashMap.empty[String, SvmComponentWrapper]
                         this.childrenMap.update(name, objWrapper.asInstanceOf[SvmComponentWrapper])
                     case obj: SvmObject => 
                         obj.setName(name) // All other svm objects
                         obj.parentScope = this
-                        objWrapper.updateName(f"${name}#${obj.hashCode()}@${this.hashCode()}")
+                        objWrapper.updateName(f"${name}#${obj.getInstID()}@${this.getInstID()}")
                 }
                 childrenObj.addOne(objWrapper.asInstanceOf[SvmObjectWrapper[SvmObject]])
             case comp: SvmComponent => 

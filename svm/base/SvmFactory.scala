@@ -43,7 +43,7 @@ object SvmFactory {
                             srcComp.removeFromTree()
 
                             targetComp.parentScope = srcComp.parentScope
-                            targetComp.parentScope.childrenObj = targetComp.parentScope.childrenObj.filterNot(_.obj.hashCode == srcComp.hashCode()).addOne(targetCompWrapper)
+                            targetComp.parentScope.childrenObj = targetComp.parentScope.childrenObj.filterNot(_.obj.getInstID() == srcComp.getInstID()).addOne(targetCompWrapper)
 
                             SvmPhaseManager.removeOneComponentFromAllPhases(srcComp)
                             SvmPhaseManager.addOneComponent(targetComp)
@@ -51,7 +51,7 @@ object SvmFactory {
                         case obj: SvmObject => 
                             targetObj.setName(obj.getName())
                             targetObj.parentScope = srcObj.parentScope
-                            targetObj.parentScope.childrenObj = targetObj.parentScope.childrenObj.filterNot(_.obj.hashCode == srcObj.hashCode()).addOne(targetObjWrapper)
+                            targetObj.parentScope.childrenObj = targetObj.parentScope.childrenObj.filterNot(_.obj.getInstID() == srcObj.getInstID()).addOne(targetObjWrapper)
                             targetObjWrapper.updateName(name)
                         case _ => 
                     }

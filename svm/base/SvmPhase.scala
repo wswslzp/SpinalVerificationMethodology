@@ -107,7 +107,7 @@ class SvmDownUpPhase(phaseName : String, timeConsumable: Boolean) extends SvmPha
         val task = phaseTasks.getOrElse(key = svc, default = (p: SvmPhase) => {
             logger.error(f"Phase ${phaseName} NOT FOUND SVC ${svc.getFullName()}", new RuntimeException)
         })
-        logger.debug(f"Initiating ${svc.getFullName()} task for ${this.getPhaseName} phase.") // FIXME: Stack overflow here
+        logger.debug(f"Initiating ${svc.getFullName()} task for ${this.getPhaseName} phase.") 
         svc.children.foreach(c => initiateAllTasks(c))
         initiateOneTask(task)
     }

@@ -5,6 +5,7 @@ import svm.PostInitCallback
 import svm.factory
 
 abstract class SvmObject extends SvmVoid with ValCallback with PostInitCallback {
+  private val createdTimeStamp = System.currentTimeMillis()
   var name = "nullObject"
   var parentScope: SvmObject = null
   var childrenObj = scala.collection.mutable.LinkedHashSet.empty[SvmObjectWrapper[SvmObject]]
@@ -27,7 +28,7 @@ abstract class SvmObject extends SvmVoid with ValCallback with PostInitCallback 
     } else this.name
   }
 
-  def getInstID(): Int = this.hashCode()
+  def getInstID(): Long = this.hashCode() ^ createdTimeStamp
 
   def getTypeName(): String = this.getClass().getTypeName()
 
@@ -38,7 +39,7 @@ abstract class SvmObject extends SvmVoid with ValCallback with PostInitCallback 
           case obj: SvmObject =>
             obj.setName(name)
             obj.parentScope = this
-            objWrapper.updateName(f"${name}#${obj.hashCode()}@${this.hashCode()}")
+            objWrapper.updateName(f"${name}#${obj.getInstID()}@${this.getInstID()}")
           case _ => {}
         }
         childrenObj.addOne(objWrapper.asInstanceOf[SvmObjectWrapper[SvmObject]])
