@@ -16,11 +16,15 @@ class B_subscriber extends Subscriber_b {
     }
 }
 
+class NewTxn() extends txn(){
+    override val typename: String = "NewTxn"
+}
+
 class B_test extends A_test {
     override def buildPhase(phase: SvmPhase): Unit = {
         super.buildPhase(phase)
         factory.overrideInstByName("SvmRoot.B_test.env.agent_b.sub_b", new B_subscriber)
-        // factory.overrideInstByGlobPattern("SvmRoot.*.sub_b.*", new B_subscriber)
+        factory.overrideTypeByType("txn", new NewTxn())
     }
 }
 

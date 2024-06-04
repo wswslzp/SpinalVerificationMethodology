@@ -22,6 +22,7 @@ case class SvmRtlForTest() extends Component {
 
 case class txn() extends SvmObject {
     var pd = scala.util.Random.nextInt(1024)
+    val typename = "txn"
 }
 
 class Sequencer_a extends SvmSequencer[txn] {
@@ -41,7 +42,7 @@ class Sequencer_a extends SvmSequencer[txn] {
 
         seq.foreach({
             t => 
-                logger.info(f"sqr_a sending ${t.pd}")
+                logger.info(f"sqr_a sending ${t.pd}, typeName is ${t.typename}")
                 ap.write(t)
                 dut.clockDomain.waitSampling()
         })

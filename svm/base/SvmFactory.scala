@@ -63,22 +63,23 @@ object SvmFactory {
         targetObjWrapper.updateChildrenWrapperName()
     }
     
-    // override method should be called before the instance declaration/creation
-    // srcInstPath is the source instance path pattern. 
-    // If the instance that has path matched with the pattern, 
-    // then this instance will be overriden by the destined instance
-    // TODO: Glob pattern is not correctly, should work with type checking method
-    def overrideInstByGlobPattern[T<:SvmObject](pattern: String, newObjCreator: => T)(implicit t: ClassTag[T]): Unit = {
-        SvmObjectWrapper.objNameInstMap.keys.filter(matchGlob(pattern, _)).foreach({matchedName => 
-            overrideInstByName(matchedName, newObjCreator)
+    def overrideInst[T<:SvmObject](pred: (String, SvmObject) => Boolean, newObjCreator: => T)(implicit t: ClassTag[T]): Unit = {
+        SvmObjectWrapper.objNameInstMap.filter({case (name, obj) => pred(name, obj)}).foreach({case (name, obj) =>
+            overrideInstByName(name, newObjCreator)
         })
     }
-    def overrideInstByRegexPattern[T<:SvmObject](pattern: String, newObjCreator: => T)(implicit t: ClassTag[T]): Unit = {
-        SvmObjectWrapper.objNameInstMap.keys.filter(_.matches(pattern)).foreach({matchedName => 
-            overrideInstByName(matchedName, newObjCreator)
-        })
+    
+    def overrideTypeByType[T<:SvmObject](oldTypeName: String, newObjCreator: => T)(implicit t: ClassTag[T]): Unit = {
+        addOneTypeCreator(oldTypeName, newObjCreator)
+        overrideInst(pred = (name: String, obj: SvmObject) => {obj.getTypeName() == oldTypeName}, newObjCreator)
     }
-    def overrideInstByTypeAndGlobPattern[T<:SvmObject](pattern: String, oldType: String, newObjCreator: => T)(implicit t: ClassTag[T]): Unit = {
-
+    
+    def overrideInstByGlobPattern[T<:SvmObject](pattern: String, oldTypeName: String, newObjCreator: => T)(implicit t: ClassTag[T]): Unit = {
+        addOneTypeCreator(oldTypeName, newObjCreator)
+        overrideInst((name: String, obj: SvmObject) => {matchGlob(pattern, name) && obj.getTypeName() == oldTypeName}, newObjCreator)
+    }
+    def overrideInstByRegexPattern[T<:SvmObject](pattern: String, oldTypeName: String, newObjCreator: => T)(implicit t: ClassTag[T]): Unit = {
+        addOneTypeCreator(oldTypeName, newObjCreator)
+        overrideInst((name: String, obj: SvmObject) => {name.matches(pattern) && obj.getTypeName() == oldTypeName}, newObjCreator)
     }
 }
