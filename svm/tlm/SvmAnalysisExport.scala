@@ -3,11 +3,11 @@ import svm._
 import svm.base._
 import svm.logger
 
-class SvmAnalysisExport[T <: SvmObject] extends SvmPostBase[T, T] {
+class SvmAnalysisExport[T <: SvmObject] extends SvmPortBase[T, T] {
     val downstreams = scala.collection.mutable.ArrayBuffer[SvmAnalysisExport[T]]()
     var beforeWritingTask : T => Unit = null
     var afterWritingTask : T => Unit = null
-    override def connect(exp: SvmPostBase[T, T]) : this.type = {
+    override def connect(exp: SvmPortBase[T, T]) : this.type = {
         logger.trace(f"${this.getFullName()} connects ${exp.getFullName()}")
         downstreams.addOne(exp.asInstanceOf[SvmAnalysisExport[T]])
         this
